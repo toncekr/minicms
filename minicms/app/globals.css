@@ -28,15 +28,12 @@
 html {
   scroll-behavior: smooth;
   color-scheme: light;
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  background-image:
-    radial-gradient(circle at top left, rgba(135, 190, 118, 0.16), transparent 28rem),
-    radial-gradient(circle at top right, rgba(225, 209, 165, 0.18), transparent 24rem),
-    linear-gradient(180deg, #f7faf4, #f2f6ee);
   font-family: var(--font-inter), sans-serif;
 }
 

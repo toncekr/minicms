@@ -13,7 +13,6 @@ export const revalidate = 300;
 export default async function Home() {
   const session = await auth();
   const weedLogs = await getRecentWeedLogs();
-  const tagCount = new Set(weedLogs.flatMap((weedLog) => weedLog.tags.map((tag) => tag.slug))).size;
   const averageRating =
     weedLogs.length > 0
       ? (
