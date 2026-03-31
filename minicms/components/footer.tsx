@@ -20,7 +20,7 @@ export function Footer() {
             Feed
           </Link>
           <Link href="/dashboard/logs" className="hover:text-[color:var(--foreground)]">
-            My Logs
+            Dashboard
           </Link>
         </div>
       </div>

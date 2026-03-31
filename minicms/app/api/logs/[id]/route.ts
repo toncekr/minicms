@@ -36,7 +36,12 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
+
   const parsed = weedLogInputSchema.safeParse(body);
 
   if (!parsed.success) {

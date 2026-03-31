@@ -33,24 +33,28 @@ export function DeleteWeedLogButton({
           setError("");
 
           startTransition(async () => {
-            const response = await fetch(`/api/logs/${weedLogId}`, {
-              method: "DELETE",
-            });
+            try {
+              const response = await fetch(`/api/logs/${weedLogId}`, {
+                method: "DELETE",
+              });
 
-            if (!response.ok) {
-              const payload = (await response.json().catch(() => null)) as
-                | { error?: string }
-                | null;
+              if (!response.ok) {
+                const payload = (await response.json().catch(() => null)) as
+                  | { error?: string }
+                  | null;
 
-              setError(payload?.error ?? "Unable to delete this log.");
-              return;
+                setError(payload?.error ?? "Unable to delete this log.");
+                return;
+              }
+
+              if (redirectTo) {
+                router.push(redirectTo);
+              }
+
+              router.refresh();
+            } catch {
+              setError("Unable to delete this log right now.");
             }
-
-            if (redirectTo) {
-              router.push(redirectTo);
-            }
-
-            router.refresh();
           });
         }}
       >

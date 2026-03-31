@@ -73,7 +73,7 @@ export function WeedLogForm({
     }));
   }
 
-async function uploadImage(file: File) {
+  async function uploadImage(file: File) {
     if (!file.type.startsWith("image/")) {
       setRootError("Only image uploads are allowed.");
       return;
@@ -84,28 +84,32 @@ async function uploadImage(file: File) {
       return;
     }
 
-    const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": file.type,
-      },
-      body: file,
-    });
+    try {
+      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
 
-    const payload = (await response.json().catch(() => null)) as
-      | { error?: string; url?: string }
-      | null;
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string; url?: string }
+        | null;
 
-    if (!response.ok || !payload?.url) {
-      setRootError(payload?.error ?? "Unable to upload the image.");
-      return;
+      if (!response.ok || !payload?.url) {
+        setRootError(payload?.error ?? "Unable to upload the image.");
+        return;
+      }
+
+      setErrors((current) => ({
+        ...current,
+        root: undefined,
+      }));
+      assign("imageUrl", payload.url);
+    } catch {
+      setRootError("Unable to upload the image right now.");
     }
-
-    setErrors((current) => ({
-      ...current,
-      root: undefined,
-    }));
-    assign("imageUrl", payload.url);
   }
 
   return (
@@ -131,28 +135,34 @@ async function uploadImage(file: File) {
             }
 
             startTransition(async () => {
-              const response = await fetch(weedLogId ? `/api/logs/${weedLogId}` : "/api/logs", {
-                method: weedLogId ? "PUT" : "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(parsed.data),
-              });
-
-              if (!response.ok) {
-                const payload = (await response.json().catch(() => null)) as
-                  | { details?: { fieldErrors?: FormErrors }; error?: string }
-                  | null;
-
-                setErrors({
-                  ...(payload?.details?.fieldErrors ?? {}),
-                  root: payload?.error ? [payload.error] : ["Unable to save this log."],
+              try {
+                const response = await fetch(weedLogId ? `/api/logs/${weedLogId}` : "/api/logs", {
+                  method: weedLogId ? "PUT" : "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(parsed.data),
                 });
-                return;
-              }
 
-              router.push("/dashboard/logs");
-              router.refresh();
+                if (!response.ok) {
+                  const payload = (await response.json().catch(() => null)) as
+                    | { details?: { fieldErrors?: FormErrors }; error?: string }
+                    | null;
+
+                  setErrors({
+                    ...(payload?.details?.fieldErrors ?? {}),
+                    root: payload?.error ? [payload.error] : ["Unable to save this log."],
+                  });
+                  return;
+                }
+
+                router.push("/dashboard/logs");
+                router.refresh();
+              } catch {
+                setErrors({
+                  root: ["Unable to save this log right now."],
+                });
+              }
             });
           }}
         >

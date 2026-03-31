@@ -192,9 +192,9 @@ export async function getPublicWeedLogFeed(filters: WeedLogListQuery) {
     ...(query
       ? {
           OR: [
-            { title: { contains: query } },
-            { strain: { contains: query } },
-            { content: { contains: query } },
+            { title: { contains: query, mode: "insensitive" } },
+            { strain: { contains: query, mode: "insensitive" } },
+            { content: { contains: query, mode: "insensitive" } },
           ],
         }
       : {}),

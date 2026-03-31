@@ -6,13 +6,40 @@ import { WeedLogFeed } from "@/components/weed-log-feed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getRecentWeedLogs } from "@/lib/weed-logs";
+import { getPublicWeedLogFeed } from "@/lib/weed-logs";
+import { weedLogListQuerySchema } from "@/lib/validation/weed-log";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+type HomePageProps = {
+  searchParams: Promise<{
+    query?: string;
+    tag?: string;
+    type?: string;
+  }>;
+};
+
+export default async function Home({ searchParams }: HomePageProps) {
   const session = await auth();
-  const weedLogs = await getRecentWeedLogs();
+  const rawSearchParams = await searchParams;
+  const parsedFilters = weedLogListQuerySchema.safeParse({
+    page: 1,
+    pageSize: 24,
+    query: rawSearchParams.query,
+    tag: rawSearchParams.tag,
+    type: rawSearchParams.type,
+  });
+  const filters = parsedFilters.success
+    ? parsedFilters.data
+    : {
+        page: 1,
+        pageSize: 24,
+        query: undefined,
+        tag: undefined,
+        type: undefined,
+      };
+  const feed = await getPublicWeedLogFeed(filters);
+  const weedLogs = feed.items;
   const averageRating =
     weedLogs.length > 0
       ? (
@@ -61,7 +88,7 @@ export default async function Home() {
               </div>
             </div>
             <p className="text-sm leading-6 text-[color:var(--muted-foreground)]">
-              See what everyone is smoking right now, from quick ratings to full strain writeups.
+              Browse recent logs, filter the feed, or post your own.
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -80,14 +107,14 @@ export default async function Home() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Feed stats</CardTitle>
+            <CardTitle className="text-base">Current view</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             <div className="rounded-[1.5rem] bg-[color:var(--surface-elevated)] p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--muted-foreground)]">
                 Logs
               </p>
-              <p className="mt-2 text-3xl font-semibold">{weedLogs.length}</p>
+              <p className="mt-2 text-3xl font-semibold">{feed.total}</p>
             </div>
             <div className="rounded-[1.5rem] bg-[color:var(--surface-elevated)] p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--muted-foreground)]">
@@ -106,13 +133,19 @@ export default async function Home() {
       </aside>
 
       <section className="min-w-0 space-y-4">
-        <WeedLogFeed weedLogs={weedLogs} />
+        <WeedLogFeed
+          weedLogs={weedLogs}
+          query={filters.query ?? ""}
+          selectedTag={filters.tag ?? "all"}
+          selectedType={filters.type ?? "all"}
+          total={feed.total}
+        />
       </section>
 
       <aside className="space-y-4 lg:sticky lg:top-24">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Trending tags</CardTitle>
+            <CardTitle className="text-base">Tags in view</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {topTags.length > 0 ? (
@@ -133,8 +166,6 @@ export default async function Home() {
             )}
           </CardContent>
         </Card>
-
-       
       </aside>
     </div>
   );

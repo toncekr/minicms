@@ -30,7 +30,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const summary = `${weedLog.strain} · ${weedLog.type} · ${weedLog.rating}/10`;
+  const summary = `${weedLog.strain} / ${weedLog.type} / ${weedLog.rating}/10`;
 
   return {
     title: `${weedLog.title} by ${weedLog.author.name ?? "Anonymous"}`,

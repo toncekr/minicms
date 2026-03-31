@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { AuthError } from "next-auth";
 
 import { signIn } from "@/auth";
@@ -105,14 +106,28 @@ export async function registerAction(
     };
   }
 
-  await prisma.user.create({
-    data: {
-      name: parsed.data.name,
-      email,
-      emailVerified: new Date(),
-      passwordHash: await hashPassword(parsed.data.password),
-    },
-  });
+  try {
+    await prisma.user.create({
+      data: {
+        name: parsed.data.name,
+        email,
+        emailVerified: new Date(),
+        passwordHash: await hashPassword(parsed.data.password),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return {
+        error: "An account with that email already exists.",
+        values: toValues({
+          name: rawValues.name,
+          email: rawValues.email,
+        }),
+      };
+    }
+
+    throw error;
+  }
 
   try {
     await signIn("credentials", {

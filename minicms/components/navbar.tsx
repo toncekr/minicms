@@ -13,7 +13,7 @@ export async function Navbar() {
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3 text-[color:var(--foreground)]">
-              <span className="overflow-hidden rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-elevated)] p-1 shadow-[0_10px_24px_-20px_rgba(44,71,43,0.24)]">
+            <span className="overflow-hidden rounded-2xl border border-[color:var(--border)] bg-[color:var(--surface-elevated)] p-1 shadow-[0_10px_24px_-20px_rgba(44,71,43,0.24)]">
               <Image
                 src="/logo/weedpal-logo.png"
                 alt="Weedpal logo"
@@ -33,9 +33,11 @@ export async function Navbar() {
             <Link href="/" className="hover:text-[color:var(--foreground)]">
               Feed
             </Link>
-            <Link href="/dashboard/logs" className="hover:text-[color:var(--foreground)]">
-              My Logs
-            </Link>
+            {session?.user ? (
+              <Link href="/dashboard/logs" className="hover:text-[color:var(--foreground)]">
+                Dashboard
+              </Link>
+            ) : null}
           </nav>
         </div>
 

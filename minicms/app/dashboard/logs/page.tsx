@@ -90,7 +90,7 @@ export default async function DashboardLogsPage() {
                       </p>
                     </div>
                     <p className="text-sm text-[color:var(--muted-foreground)]">
-                      {isAdmin ? `${weedLog.author.name ?? "Anonymous"} · ` : ""}
+                      {isAdmin ? `${weedLog.author.name ?? "Anonymous"} / ` : ""}
                       Updated {formatDate(weedLog.updatedAt)}
                     </p>
                   </div>

@@ -11,34 +11,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 type WeedLogFeedProps = {
   weedLogs: WeedLogSummary[];
+  query: string;
+  selectedTag: string;
+  selectedType: string;
+  total: number;
 };
 
-function matchesLog(weedLog: WeedLogSummary, query: string, tag: string, type: string) {
-  const normalizedQuery = query.trim().toLowerCase();
-  const matchesQuery =
-    !normalizedQuery ||
-    weedLog.title.toLowerCase().includes(normalizedQuery) ||
-    weedLog.strain.toLowerCase().includes(normalizedQuery) ||
-    weedLog.content.toLowerCase().includes(normalizedQuery) ||
-    (weedLog.author.name ?? "").toLowerCase().includes(normalizedQuery);
-
-  const matchesTag = tag === "all" || weedLog.tags.some((weedLogTag) => weedLogTag.slug === tag);
-  const matchesType = type === "all" || weedLog.type === type;
-
-  return matchesQuery && matchesTag && matchesType;
-}
-
-export function WeedLogFeed({ weedLogs }: WeedLogFeedProps) {
+export function WeedLogFeed({
+  weedLogs,
+  query,
+  selectedTag,
+  selectedType,
+  total,
+}: WeedLogFeedProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const query = searchParams.get("query") ?? "";
-  const selectedTag = searchParams.get("tag") ?? "all";
-  const selectedType = searchParams.get("type") ?? "all";
   const tags = Array.from(
     new Map(weedLogs.flatMap((weedLog) => weedLog.tags.map((tag) => [tag.slug, tag] as const))).values(),
   );
+  const tagOptions =
+    selectedTag !== "all" && !tags.some((tag) => tag.slug === selectedTag)
+      ? [...tags, { id: selectedTag, name: selectedTag, slug: selectedTag }]
+      : tags;
 
   function updateSearchParams(nextQuery: string, nextTag: string, nextType: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -65,10 +60,6 @@ export function WeedLogFeed({ weedLogs }: WeedLogFeedProps) {
     router.replace(nextUrl, { scroll: false });
   }
 
-  const visibleLogs = weedLogs.filter((weedLog) =>
-    matchesLog(weedLog, query, selectedTag, selectedType),
-  );
-
   return (
     <div className="space-y-8">
       <div className="rounded-[2rem] border border-[color:var(--border-strong)] bg-[color:var(--surface)] p-4 shadow-[0_16px_40px_-30px_rgba(44,71,43,0.16)]">
@@ -76,11 +67,11 @@ export function WeedLogFeed({ weedLogs }: WeedLogFeedProps) {
           <div>
             <h2 className="text-lg font-semibold">Latest posts</h2>
             <p className="text-sm text-[color:var(--muted-foreground)]">
-              Fresh logs from the whole Weedpal feed.
+              Browse recent community logs.
             </p>
           </div>
           <span className="rounded-full bg-[color:var(--surface-elevated)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted-foreground)]">
-            {visibleLogs.length} showing
+            {total > weedLogs.length ? `${weedLogs.length} of ${total}` : total} showing
           </span>
         </div>
 
@@ -118,7 +109,7 @@ export function WeedLogFeed({ weedLogs }: WeedLogFeedProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All tags</SelectItem>
-              {tags.map((tag) => (
+              {tagOptions.map((tag) => (
                 <SelectItem key={tag.id} value={tag.slug}>
                   {tag.name}
                 </SelectItem>
@@ -128,9 +119,9 @@ export function WeedLogFeed({ weedLogs }: WeedLogFeedProps) {
         </div>
       </div>
 
-      {visibleLogs.length > 0 ? (
+      {weedLogs.length > 0 ? (
         <div className="space-y-5">
-          {visibleLogs.map((weedLog) => (
+          {weedLogs.map((weedLog) => (
             <WeedLogCard key={weedLog.id} weedLog={weedLog} />
           ))}
         </div>
