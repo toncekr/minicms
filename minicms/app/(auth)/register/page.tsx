@@ -15,6 +15,14 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   const session = await auth();
   const params = await searchParams;
   const callbackUrl = getSafeRedirect(params.callbackUrl);
+  const oauthProviders = [
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+      ? [{ id: "google" as const, label: "Google" }]
+      : []),
+    ...(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET
+      ? [{ id: "github" as const, label: "GitHub" }]
+      : []),
+  ];
 
   if (session?.user?.id) {
     redirect(callbackUrl);
@@ -24,14 +32,11 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
     <AuthShell
       eyebrow="Weedpal"
       title="Create account"
-      description="Use your email and password."
+      description="Use email or a connected account."
       asideTitle="Create account"
       asideDescription="Set up an account to post and manage weed logs."
     >
-      <RegisterForm
-        callbackUrl={callbackUrl}
-        githubEnabled={Boolean(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET)}
-      />
+      <RegisterForm callbackUrl={callbackUrl} oauthProviders={oauthProviders} />
     </AuthShell>
   );
 }

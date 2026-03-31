@@ -15,6 +15,10 @@ export type AuthActionState = {
   values?: Record<string, string>;
 };
 
+function isSupportedOAuthProvider(value: FormDataEntryValue | null): value is "google" | "github" {
+  return value === "google" || value === "github";
+}
+
 function toValues(entries: Record<string, FormDataEntryValue | null>) {
   return Object.fromEntries(
     Object.entries(entries).map(([key, value]) => [key, typeof value === "string" ? value : ""]),
@@ -152,8 +156,14 @@ export async function registerAction(
   return {};
 }
 
-export async function githubSignInAction(formData: FormData) {
-  await signIn("github", {
+export async function oauthSignInAction(formData: FormData) {
+  const provider = formData.get("provider");
+
+  if (!isSupportedOAuthProvider(provider)) {
+    return;
+  }
+
+  await signIn(provider, {
     redirectTo: getSafeRedirect(formData.get("callbackUrl")),
   });
 }

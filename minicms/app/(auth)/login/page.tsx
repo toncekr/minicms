@@ -15,6 +15,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await auth();
   const params = await searchParams;
   const callbackUrl = getSafeRedirect(params.callbackUrl);
+  const oauthProviders = [
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+      ? [{ id: "google" as const, label: "Google" }]
+      : []),
+    ...(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET
+      ? [{ id: "github" as const, label: "GitHub" }]
+      : []),
+  ];
 
   if (session?.user?.id) {
     redirect(callbackUrl);
@@ -24,14 +32,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <AuthShell
       eyebrow="Weedpal"
       title="Sign in"
-      description="Use your email and password."
+      description="Use email or a connected account."
       asideTitle="Sign in"
       asideDescription="Access your dashboard and weed logs."
     >
-      <LoginForm
-        callbackUrl={callbackUrl}
-        githubEnabled={Boolean(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET)}
-      />
+      <LoginForm callbackUrl={callbackUrl} oauthProviders={oauthProviders} />
     </AuthShell>
   );
 }

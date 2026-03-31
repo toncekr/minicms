@@ -4,17 +4,22 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import {
-  githubSignInAction,
   loginAction,
+  oauthSignInAction,
   type AuthActionState,
 } from "@/app/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+type OauthProvider = {
+  id: "google" | "github";
+  label: string;
+};
+
 type LoginFormProps = {
   callbackUrl: string;
-  githubEnabled: boolean;
+  oauthProviders: OauthProvider[];
 };
 
 const initialAuthActionState: AuthActionState = {};
@@ -26,21 +31,26 @@ function fieldError(
   return fieldErrors?.[field]?.[0];
 }
 
-export function LoginForm({ callbackUrl, githubEnabled }: LoginFormProps) {
+export function LoginForm({ callbackUrl, oauthProviders }: LoginFormProps) {
   const [state, formAction, pending] = useActionState(loginAction, initialAuthActionState);
 
   return (
     <div className="space-y-6">
-      {githubEnabled ? (
-        <form action={githubSignInAction}>
-          <input type="hidden" name="callbackUrl" value={callbackUrl} />
-          <Button type="submit" variant="secondary" className="w-full">
-            Continue with GitHub
-          </Button>
-        </form>
+      {oauthProviders.length > 0 ? (
+        <div className="space-y-3">
+          {oauthProviders.map((provider) => (
+            <form key={provider.id} action={oauthSignInAction}>
+              <input type="hidden" name="callbackUrl" value={callbackUrl} />
+              <input type="hidden" name="provider" value={provider.id} />
+              <Button type="submit" variant="secondary" className="w-full">
+                Continue with {provider.label}
+              </Button>
+            </form>
+          ))}
+        </div>
       ) : null}
 
-      {githubEnabled ? (
+      {oauthProviders.length > 0 ? (
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-[color:var(--border)]" />
