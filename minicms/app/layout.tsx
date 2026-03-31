@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { Inter } from "next/font/google";
 
+import { AnalyticsConsent } from "@/components/analytics-consent";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { siteConfig } from "@/lib/site";
@@ -47,8 +47,8 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </div>
+        <AnalyticsConsent gaId={gaId} />
       </body>
-      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }
